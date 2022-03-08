@@ -1,12 +1,16 @@
 package errors
 
-import "strings"
+import (
+	"go.mongodb.org/mongo-driver/mongo"
+	"strings"
+)
 
 type (
 	Error struct {
-		Code       string
-		HTTPStatus int
-		Message    string
+		Code       string `json:"code"`
+		HTTPStatus int    `json:"http_status"`
+		Message    string `json:"message"`
+		Stack      string `json:"-"`
 	}
 )
 
@@ -23,10 +27,22 @@ type (
 */
 
 const (
+	// ErrCodeESy00001 Error no especificado
+	ErrCodeESy00001 = "ESY-00001"
+
+	// ErrCodeEdb00001 Problema de red con el servidor de base de datos.
 	ErrCodeEdb00001 = "EDB-00001"
+	// ErrCodeEdb00002 EL servidor de base de datos tarda demasiado en responder.
+	ErrCodeEdb00002 = "EDB-00002"
+	// ErrCodeEdb00003 El valor de la clave duplicada infringe el valor único.
+	ErrCodeEdb00003 = "EDB-00003"
 
+	// ErrCodeEap00001 El correo electronico ya está en uso.
 	ErrCodeEap00001 = "EAP-00001"
+	// ErrCodeEap00002 La contraseña debe tener minimo 8 caracteres.
+	ErrCodeEap00002 = "EAP-00002"
 
+	HttpStatus401 = 401
 	HttpStatus400 = 400
 	HttpStatus500 = 500
 )
@@ -35,22 +51,50 @@ func (err *Error) Error() string {
 	return err.Message
 }
 
-func New(code, message string, status int) Error {
-	return Error{
-		Code:       code,
-		HTTPStatus: status,
-		Message:    message,
+func NewErrorFromErrorMongo(err error) Error {
+	customError := Error{}
+	msj := err.Error()
+
+	if mongo.IsDuplicateKeyError(err) {
+		field := strings.TrimSpace(msj[strings.Index(msj, "{")+1 : strings.LastIndex(msj, ":")])
+		customError.dbUnique(field, msj)
+		return customError
+	} else if mongo.IsNetworkError(err) {
+		customError.dbNetworkError(msj)
+		return customError
+	} else if mongo.IsTimeout(err) {
+		customError.dbTimeOut(msj)
+		return customError
 	}
+
+	customError.unspecified(msj)
+	return customError
 }
 
-func (err *Error) DBUnique(field string) {
-	err.Code = ErrCodeEdb00001
-	err.HTTPStatus = HttpStatus500
-	err.Message = strings.TrimSpace("Campo único duplicado: " + field + ".")
+func (e *Error) dbUnique(field, stack string) {
+	e.Code = ErrCodeEdb00003
+	e.HTTPStatus = HttpStatus500
+	e.Message = strings.TrimSpace("Campo único duplicado: " + field + ".")
+	e.Stack = stack
 }
 
-func (err *Error) APPFieldFormat(field, format string) {
-	err.Code = ErrCodeEap00001
-	err.HTTPStatus = HttpStatus400
-	err.Message = strings.TrimSpace("El campo " + field + " requiere el siguiente formato " + format + ".")
+func (e *Error) dbNetworkError(stack string) {
+	e.Code = ErrCodeEdb00001
+	e.HTTPStatus = HttpStatus500
+	e.Message = "No se realizo la conexion al servidor de base de datos."
+	e.Stack = stack
+}
+
+func (e *Error) dbTimeOut(stack string) {
+	e.Code = ErrCodeEdb00002
+	e.HTTPStatus = HttpStatus500
+	e.Message = "Tardo demasiado en responder el servidor de base de datos."
+	e.Stack = stack
+}
+
+func (e *Error) unspecified(stack string) {
+	e.Code = ErrCodeESy00001
+	e.HTTPStatus = HttpStatus500
+	e.Message = "Error interno en el sistema."
+	e.Stack = stack
 }
