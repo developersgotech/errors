@@ -55,7 +55,7 @@ const (
 	HttpStatus500 = 500
 )
 
-func (err *Error) Error() string {
+func (err Error) Error() string {
 	return err.Message
 }
 
