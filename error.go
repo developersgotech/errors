@@ -16,19 +16,20 @@ type (
 
 /*
 200 - Bien	Todo funcionó como se esperaba.
-400 - Petición Incorrecta	La solicitud era inaceptable, a menudo debido a que faltaba un parámetro obligatorio.
-401 - No autorizado	No se ha proporcionado ninguna clave de API válida.
 402 - Solicitud fallida	Los parámetros eran válidos pero la solicitud falló.
 403 - Prohibido	La clave API no tiene permisos para realizar la solicitud.
 404 - No encontrado	El recurso solicitado no existe.
 409 - Conflicto	La solicitud entra en conflicto con otra solicitud (quizás debido al uso de la misma clave idempotente).
 429 - Demasiadas solicitudes	Demasiadas solicitudes llegan a la API demasiado rápido. Recomendamos un retroceso exponencial de sus solicitudes.
-500, 502, 503, 504 - Errores del servidor	Algo salió mal por parte de Stripe. (Estos son raros.)
 */
 
 const (
-	// ErrCodeESy00001 Error no especificado
+	// ErrCodeESy00001 Ocurrio un error que no se tiene contemplado.
 	ErrCodeESy00001 = "ESY-00001"
+	// ErrCodeEsy00002 Error No se puede crear el hash de la contraseña.
+	ErrCodeEsy00002 = "ESY-00002"
+	// ErrCodeEsy00003 No se pudo convertir UUID a string.
+	ErrCodeEsy00003 = "ESY-00002"
 
 	// ErrCodeEdb00001 Problema de red con el servidor de base de datos.
 	ErrCodeEdb00001 = "EDB-00001"
@@ -36,14 +37,21 @@ const (
 	ErrCodeEdb00002 = "EDB-00002"
 	// ErrCodeEdb00003 El valor de la clave duplicada infringe el valor único.
 	ErrCodeEdb00003 = "EDB-00003"
+	// ErrCodeEdb00004 No se completo la transacion en la base de datos.
+	ErrCodeEdb00004 = "EDB-00004"
 
 	// ErrCodeEap00001 El correo electronico ya está en uso.
 	ErrCodeEap00001 = "EAP-00001"
 	// ErrCodeEap00002 La contraseña debe tener minimo 8 caracteres.
 	ErrCodeEap00002 = "EAP-00002"
+	// ErrCodeEap00003 El correo especificado no cumple con el formato de un correo valido.
+	ErrCodeEap00003 = "EAP-00003"
 
+	// HttpStatus401 Codigo HTTP 401 - No autorizado: no se ha proporcionado ninguna clave de API válida.
 	HttpStatus401 = 401
+	// HttpStatus400 Codigo HTTP 400 - Petición Incorrecta: la solicitud era inaceptable, a menudo debido a que faltaba un parámetro obligatorio.
 	HttpStatus400 = 400
+	// HttpStatus500 Codigo HTTP 400 - Errores del servidor: algo salió mal por parte de Stripe.
 	HttpStatus500 = 500
 )
 
