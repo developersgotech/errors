@@ -1,6 +1,7 @@
 package errors
 
 import (
+	"fmt"
 	"go.mongodb.org/mongo-driver/mongo"
 	"strings"
 )
@@ -56,7 +57,7 @@ const (
 )
 
 func (err Error) Error() string {
-	return err.Message
+	return fmt.Sprintf("Code: %v Messaje: %v Stack: %v", err.Code, err.Message, err.Stack)
 }
 
 func NewErrorFromErrorMongo(err error) Error {
